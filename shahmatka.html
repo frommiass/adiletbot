@@ -374,11 +374,11 @@
                 const floors_i = ENTRANCE_FLOORS[i];
                 const flats_i = FLATS_PER_FLOOR[i];
                 
-                // Для 1-го подъезда: 6кв на 2эт + 4кв на 3эт + остальные этажи*6кв
+                // Для 1-го подъезда: 6кв на 2эт + 4кв на 3эт + (этажи 4-12)*6кв
                 if (i === 1) {
-                    baseFlat += 6 + 4 + (floors_i - 2) * flats_i;
+                    baseFlat += 6 + 4 + (floors_i - 3) * flats_i; // 6+4+(12-3)*6 = 6+4+54 = 64
                 } else {
-                    baseFlat += floors_i * flats_i;
+                    baseFlat += (floors_i - 1) * flats_i; // -1 потому что пропускаем 1 этаж
                 }
             }
 
