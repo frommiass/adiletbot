@@ -104,14 +104,13 @@
             border: none;
             border-radius: 8px;
             padding: 20px 8px;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             min-height: 60px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
@@ -119,12 +118,6 @@
         .cell:active {
             transform: scale(0.95);
             opacity: 0.8;
-        }
-
-        .cell-label {
-            font-size: 10px;
-            opacity: 0.8;
-            margin-top: 4px;
         }
 
         .flats-container {
@@ -136,6 +129,11 @@
         .flats-grid {
             display: grid;
             gap: 3px;
+            transform: scaleY(-1);
+        }
+
+        .flats-grid > * {
+            transform: scaleY(-1);
         }
 
         .flats-grid-5 {
@@ -189,17 +187,6 @@
             grid-column: span 2;
         }
 
-        .flat-cell.empty {
-            background: transparent;
-            box-shadow: none;
-            cursor: default;
-        }
-
-        .flat-cell.empty:active {
-            transform: none;
-            opacity: 1;
-        }
-
         .legend {
             text-align: center;
             margin-top: 20px;
@@ -210,10 +197,48 @@
             color: var(--tg-theme-hint-color, #999999);
             line-height: 1.5;
         }
+
+        .contact-card {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .contact-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .contact-link {
+            color: var(--tg-theme-link-color, #3390ec);
+            text-decoration: none;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .contact-link:active {
+            opacity: 0.7;
+        }
+
+        .no-contacts {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-theme-hint-color, #999999);
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
-    <!-- Экран выбора подъезда -->
     <div id="entrance-screen" class="screen active">
         <div class="header">
             <button class="back-button" onclick="goHome()">‹</button>
@@ -232,7 +257,6 @@
         </div>
     </div>
 
-    <!-- Экран квартир в подъезде -->
     <div id="flat-screen" class="screen">
         <div class="header">
             <button class="back-button" onclick="backToEntrances()">‹</button>
@@ -248,9 +272,19 @@
         <div class="flats-container">
             <div class="flats-grid" id="flat-grid"></div>
         </div>
+    </div>
 
-        <div class="legend">
-            <small>Снизу вверх, слева направо • Большие ячейки - объединенные</small>
+    <!-- Экран контактов квартиры -->
+    <div id="contact-screen" class="screen">
+        <div class="header">
+            <button class="back-button" onclick="backToFlats()">‹</button>
+            <h1 id="flat-number">Квартира</h1>
+        </div>
+
+        <div class="section-title">Собственники</div>
+
+        <div id="contact-list" style="padding: 0 16px;">
+            <!-- Контакты -->
         </div>
     </div>
 
@@ -283,14 +317,29 @@
             862: { type: 'vertical' }
         };
 
+        // База контактов собственников
+        const FLAT_CONTACTS = {
+            204: [
+                {
+                    name: 'Иванько Григорий',
+                    telegram: 'frommiass',
+                    phone: '+7-991-134-1945'
+                },
+                {
+                    name: 'Елизарова Наталья',
+                    telegram: null,
+                    phone: null
+                }
+            ]
+            // Добавляй другие квартиры по аналогии
+        };
+
         function generateEntrances() {
             const grid = document.getElementById('entrance-grid');
             for (let i = 1; i <= 16; i++) {
                 const cell = document.createElement('button');
                 cell.className = 'cell';
-                const floors = ENTRANCE_FLOORS[i];
-                const flatsPerFloor = FLATS_PER_FLOOR[i];
-                cell.innerHTML = `<div>${i}</div><div class="cell-label">${floors}эт • ${flatsPerFloor}кв</div>`;
+                cell.textContent = i;
                 cell.onclick = () => openEntrance(i);
                 grid.appendChild(cell);
             }
@@ -303,7 +352,7 @@
 
         function updateEntranceView() {
             const floors = ENTRANCE_FLOORS[currentEntrance];
-            document.getElementById('entrance-title').textContent = `Подъезд ${currentEntrance}`;
+            document.getElementById('entrance-title').textContent = `Подъезд ${currentEntrance} (${floors} эт)`;
             generateFlats(currentEntrance);
             showScreen('flat-screen');
         }
@@ -315,82 +364,118 @@
             const totalFloors = ENTRANCE_FLOORS[entranceNum];
             const flatsPerFloor = FLATS_PER_FLOOR[entranceNum];
             
+            // Устанавливаем количество строк в grid
+            const numRows = totalFloors - 1; // 2-12 этажи = 11 строк
+            grid.style.gridTemplateRows = `repeat(${numRows}, auto)`;
             grid.className = `flats-grid flats-grid-${flatsPerFloor}`;
 
-            // Базовый номер квартиры для подъезда
+            // Базовый номер квартиры
             let baseFlat = 0;
             for (let i = 1; i < entranceNum; i++) {
-                const floors_i = ENTRANCE_FLOORS[i];
-                const flats_i = FLATS_PER_FLOOR[i];
-                // Для 1-го подъезда: 6 + 4 + (floors-2)*6
-                if (i === 1) {
-                    baseFlat += 6 + 4 + (floors_i - 2) * flats_i;
-                } else {
-                    baseFlat += floors_i * flats_i;
-                }
+                baseFlat += ENTRANCE_FLOORS[i] * FLATS_PER_FLOOR[i];
             }
 
-            let flatNum = baseFlat;
-            const skipCells = new Set();
+            let flatCounter = baseFlat;
+            const mergedColumns = {}; // {floor: Set of occupied columns}
 
-            // Рисуем сверху вниз
-            for (let floor = totalFloors + 1; floor >= 2; floor--) {
+            // Создаем метки этажей и квартиры
+            for (let floor = 2; floor <= totalFloors; floor++) {
+                const rowIndex = floor - 1;
+                
+                if (!mergedColumns[floor]) mergedColumns[floor] = new Set();
+                
+                // Метка этажа
                 const label = document.createElement('div');
                 label.className = 'floor-label';
                 label.textContent = `${floor}эт`;
+                label.style.gridColumn = '1';
+                label.style.gridRow = rowIndex;
                 grid.appendChild(label);
 
-                // Определяем количество квартир на этом этаже
-                let slots = flatsPerFloor;
+                // Определяем сколько квартир на этом этаже (с учетом занятых позиций)
+                const occupiedPositions = mergedColumns[floor].size;
+                const flatsOnThisFloor = flatsPerFloor - occupiedPositions;
+
+                // Квартиры на этаже
+                let columnOffset = 2;
                 
-                for (let pos = 0; pos < slots; pos++) {
-                    const cellId = `${floor}-${pos}`;
-
-                    // Пропускаем занятые ячейки
-                    if (skipCells.has(cellId)) {
-                        const empty = document.createElement('div');
-                        empty.className = 'flat-cell empty';
-                        grid.appendChild(empty);
-                        continue;
+                for (let i = 0; i < flatsOnThisFloor; i++) {
+                    // Пропускаем занятые столбцы
+                    while (mergedColumns[floor].has(columnOffset)) {
+                        columnOffset++;
                     }
-
-                    // Для 3-го этажа в 1-м подъезде первые 2 позиции пустые
-                    if (entranceNum === 1 && floor === 3 && pos < 2) {
-                        const empty = document.createElement('div');
-                        empty.className = 'flat-cell empty';
-                        grid.appendChild(empty);
-                        continue;
-                    }
-
-                    flatNum++;
                     
+                    flatCounter++;
+                    const flatNum = flatCounter;
+
                     const cell = document.createElement('button');
                     cell.className = 'flat-cell';
                     cell.textContent = flatNum;
+                    cell.style.gridColumn = columnOffset;
+                    cell.style.gridRow = rowIndex;
 
                     const merge = MERGED_FLATS[flatNum];
+
                     if (merge) {
                         if (merge.type === 'vertical') {
                             cell.classList.add('merged-vertical');
-                            skipCells.add(`${floor - 1}-${pos}`);
+                            cell.style.gridRow = `${rowIndex} / span 2`;
+                            if (!mergedColumns[floor + 1]) mergedColumns[floor + 1] = new Set();
+                            mergedColumns[floor + 1].add(columnOffset);
                         } else if (merge.type === 'horizontal') {
                             cell.classList.add('merged-horizontal');
-                            skipCells.add(`${floor}-${pos + 1}`);
-                            flatNum++; // пропускаем следующий номер
+                            cell.style.gridColumn = `${columnOffset} / span 2`;
+                            flatCounter++;
+                            i++; // пропускаем следующую квартиру
+                            columnOffset++;
                         }
                     }
 
                     cell.onclick = () => selectFlat(flatNum, merge);
                     grid.appendChild(cell);
+                    
+                    columnOffset++;
                 }
             }
         }
 
         function selectFlat(flatNum, merge) {
-            let msg = `Квартира ${flatNum}`;
-            if (merge?.type === 'vertical') msg += ' (↕ двухэтажная)';
-            if (merge?.type === 'horizontal') msg += ' (↔ объединенная)';
-            tg.showAlert(msg);
+            document.getElementById('flat-number').textContent = `Квартира ${flatNum}`;
+            
+            const contactList = document.getElementById('contact-list');
+            contactList.innerHTML = '';
+
+            const contacts = FLAT_CONTACTS[flatNum];
+
+            if (!contacts || contacts.length === 0) {
+                contactList.innerHTML = '<div class="no-contacts">Контакты не добавлены</div>';
+            } else {
+                contacts.forEach(contact => {
+                    const card = document.createElement('div');
+                    card.className = 'contact-card';
+
+                    let cardHTML = `<div class="contact-name">${contact.name}</div>`;
+                    cardHTML += '<div class="contact-info">';
+
+                    if (contact.telegram) {
+                        cardHTML += `<a href="https://t.me/${contact.telegram}" class="contact-link">📱 @${contact.telegram}</a>`;
+                    }
+
+                    if (contact.phone) {
+                        cardHTML += `<a href="tel:${contact.phone.replace(/[-\s]/g, '')}" class="contact-link">📞 ${contact.phone}</a>`;
+                    }
+
+                    cardHTML += '</div>';
+                    card.innerHTML = cardHTML;
+                    contactList.appendChild(card);
+                });
+            }
+
+            showScreen('contact-screen');
+        }
+
+        function backToFlats() {
+            showScreen('flat-screen');
         }
 
         function nextEntrance() {
