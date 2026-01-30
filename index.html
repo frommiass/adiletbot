@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ПП5 Чат</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--tg-theme-hint-color, #999999);
+            font-size: 15px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .menu-button {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .menu-button:active {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        .menu-button .icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .menu-button .text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .menu-button .arrow {
+            font-size: 20px;
+            opacity: 0.6;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            color: var(--tg-theme-hint-color, #999999);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏠 ПП5 Чат</h1>
+        <p>Сервисы для жителей</p>
+    </div>
+
+    <div class="menu-buttons">
+        <button class="menu-button" onclick="openPage('shahmatka.html')">
+            <span class="icon">🏢</span>
+            <span class="text">Шахматка</span>
+            <span class="arrow">›</span>
+        </button>
+
+        <button class="menu-button" onclick="openPage('statistics.html')">
+            <span class="icon">📊</span>
+            <span class="text">Статистика</span>
+            <span class="arrow">›</span>
+        </button>
+
+        <button class="menu-button" onclick="openPage('contacts.html')">
+            <span class="icon">📞</span>
+            <span class="text">Контакты</span>
+            <span class="arrow">›</span>
+        </button>
+    </div>
+
+    <div class="footer">
+        Бот для чата соседей
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        function openPage(page) {
+            window.location.href = page;
+        }
+    </script>
+</body>
+</html>

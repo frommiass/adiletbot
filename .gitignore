@@ -4,5 +4,6 @@ __pycache__/
 messages.db
 *.sqlite
 *.db
-
-
+*.log
+test.jpg
+watermarked_output.jpg

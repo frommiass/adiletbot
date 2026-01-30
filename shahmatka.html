@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Шахматка - ПП5</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 12px;
+            color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:active {
+            opacity: 0.7;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 15px;
+            color: var(--tg-theme-hint-color, #999999);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .grid-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .grid-4x4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .cell {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            padding: 20px 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .cell-label {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .flats-container {
+            overflow-x: auto;
+            margin: 0 -16px;
+            padding: 0 16px;
+        }
+
+        .flats-grid {
+            display: grid;
+            gap: 3px;
+        }
+
+        .flats-grid-5 {
+            grid-template-columns: 45px repeat(5, 1fr);
+        }
+
+        .flats-grid-6 {
+            grid-template-columns: 45px repeat(6, 1fr);
+        }
+
+        .floor-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tg-theme-hint-color, #666666);
+            padding: 2px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 4px;
+        }
+
+        .flat-cell {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 5px;
+            padding: 10px 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+        }
+
+        .flat-cell:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .flat-cell.merged-vertical {
+            grid-row: span 2;
+            min-height: 87px;
+        }
+
+        .flat-cell.merged-horizontal {
+            grid-column: span 2;
+        }
+
+        .flat-cell.empty {
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .flat-cell.empty:active {
+            transform: none;
+            opacity: 1;
+        }
+
+        .legend {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 10px;
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #999999);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Экран выбора подъезда -->
+    <div id="entrance-screen" class="screen active">
+        <div class="header">
+            <button class="back-button" onclick="goHome()">‹</button>
+            <h1>🏢 Шахматка ПП5</h1>
+        </div>
+
+        <div class="section-title">Выберите подъезд</div>
+
+        <div class="grid-container">
+            <div class="grid grid-4x4" id="entrance-grid"></div>
+        </div>
+
+        <div class="legend">
+            Нажмите на подъезд, чтобы увидеть квартиры<br>
+            <small>Первый этаж - магазины</small>
+        </div>
+    </div>
+
+    <!-- Экран квартир в подъезде -->
+    <div id="flat-screen" class="screen">
+        <div class="header">
+            <button class="back-button" onclick="backToEntrances()">‹</button>
+            <h1 id="entrance-title">Подъезд</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="prevEntrance()">‹</button>
+                <button class="nav-btn" onclick="nextEntrance()">›</button>
+            </div>
+        </div>
+
+        <div class="section-title">Свайпайте ← → между подъездами</div>
+
+        <div class="flats-container">
+            <div class="flats-grid" id="flat-grid"></div>
+        </div>
+
+        <div class="legend">
+            <small>Снизу вверх, слева направо • Большие ячейки - объединенные</small>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let currentEntrance = null;
+
+        const ENTRANCE_FLOORS = {
+            1: 12, 2: 12, 3: 16, 4: 16, 5: 16,
+            6: 12, 7: 12, 8: 16, 9: 16, 10: 12,
+            11: 12, 12: 16, 13: 16, 14: 16, 15: 16, 16: 16
+        };
+
+        const FLATS_PER_FLOOR = {
+            1: 6, 2: 6, 3: 5, 4: 6, 5: 5,
+            6: 6, 7: 6, 8: 6, 9: 5, 10: 5,
+            11: 6, 12: 5, 13: 6, 14: 5, 15: 6, 16: 6
+        };
+
+        const MERGED_FLATS = {
+            1: { type: 'vertical' },
+            2: { type: 'vertical' },
+            65: { type: 'horizontal' },
+            440: { type: 'vertical' },
+            441: { type: 'vertical' },
+            861: { type: 'vertical' },
+            862: { type: 'vertical' }
+        };
+
+        function generateEntrances() {
+            const grid = document.getElementById('entrance-grid');
+            for (let i = 1; i <= 16; i++) {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                const floors = ENTRANCE_FLOORS[i];
+                const flatsPerFloor = FLATS_PER_FLOOR[i];
+                cell.innerHTML = `<div>${i}</div><div class="cell-label">${floors}эт • ${flatsPerFloor}кв</div>`;
+                cell.onclick = () => openEntrance(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function openEntrance(entranceNum) {
+            currentEntrance = entranceNum;
+            updateEntranceView();
+        }
+
+        function updateEntranceView() {
+            const floors = ENTRANCE_FLOORS[currentEntrance];
+            document.getElementById('entrance-title').textContent = `Подъезд ${currentEntrance}`;
+            generateFlats(currentEntrance);
+            showScreen('flat-screen');
+        }
+
+        function generateFlats(entranceNum) {
+            const grid = document.getElementById('flat-grid');
+            grid.innerHTML = '';
+
+            const totalFloors = ENTRANCE_FLOORS[entranceNum];
+            const flatsPerFloor = FLATS_PER_FLOOR[entranceNum];
+            
+            grid.className = `flats-grid flats-grid-${flatsPerFloor}`;
+
+            // Базовый номер квартиры для подъезда
+            let baseFlat = 0;
+            for (let i = 1; i < entranceNum; i++) {
+                const floors_i = ENTRANCE_FLOORS[i];
+                const flats_i = FLATS_PER_FLOOR[i];
+                // Для 1-го подъезда: 6 + 4 + (floors-2)*6
+                if (i === 1) {
+                    baseFlat += 6 + 4 + (floors_i - 2) * flats_i;
+                } else {
+                    baseFlat += floors_i * flats_i;
+                }
+            }
+
+            let flatNum = baseFlat;
+            const skipCells = new Set();
+
+            // Рисуем сверху вниз
+            for (let floor = totalFloors + 1; floor >= 2; floor--) {
+                const label = document.createElement('div');
+                label.className = 'floor-label';
+                label.textContent = `${floor}эт`;
+                grid.appendChild(label);
+
+                // Определяем количество квартир на этом этаже
+                let slots = flatsPerFloor;
+                
+                for (let pos = 0; pos < slots; pos++) {
+                    const cellId = `${floor}-${pos}`;
+
+                    // Пропускаем занятые ячейки
+                    if (skipCells.has(cellId)) {
+                        const empty = document.createElement('div');
+                        empty.className = 'flat-cell empty';
+                        grid.appendChild(empty);
+                        continue;
+                    }
+
+                    // Для 3-го этажа в 1-м подъезде первые 2 позиции пустые
+                    if (entranceNum === 1 && floor === 3 && pos < 2) {
+                        const empty = document.createElement('div');
+                        empty.className = 'flat-cell empty';
+                        grid.appendChild(empty);
+                        continue;
+                    }
+
+                    flatNum++;
+                    
+                    const cell = document.createElement('button');
+                    cell.className = 'flat-cell';
+                    cell.textContent = flatNum;
+
+                    const merge = MERGED_FLATS[flatNum];
+                    if (merge) {
+                        if (merge.type === 'vertical') {
+                            cell.classList.add('merged-vertical');
+                            skipCells.add(`${floor - 1}-${pos}`);
+                        } else if (merge.type === 'horizontal') {
+                            cell.classList.add('merged-horizontal');
+                            skipCells.add(`${floor}-${pos + 1}`);
+                            flatNum++; // пропускаем следующий номер
+                        }
+                    }
+
+                    cell.onclick = () => selectFlat(flatNum, merge);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function selectFlat(flatNum, merge) {
+            let msg = `Квартира ${flatNum}`;
+            if (merge?.type === 'vertical') msg += ' (↕ двухэтажная)';
+            if (merge?.type === 'horizontal') msg += ' (↔ объединенная)';
+            tg.showAlert(msg);
+        }
+
+        function nextEntrance() {
+            currentEntrance = currentEntrance === 16 ? 1 : currentEntrance + 1;
+            updateEntranceView();
+        }
+
+        function prevEntrance() {
+            currentEntrance = currentEntrance === 1 ? 16 : currentEntrance - 1;
+            updateEntranceView();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function backToEntrances() {
+            showScreen('entrance-screen');
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        generateEntrances();
+    </script>
+</body>
+</html>

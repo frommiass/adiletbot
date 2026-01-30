@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Статистика - ПП5</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 12px;
+            color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .period-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--tg-theme-text-color, #000000);
+            transition: all 0.2s;
+        }
+
+        .period-btn.active {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--tg-theme-button-color, #3390ec);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 24px 0 12px 0;
+        }
+
+        .top-list {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .top-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .top-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .top-rank.gold { background: #FFD700; color: #000; }
+        .top-rank.silver { background: #C0C0C0; color: #000; }
+        .top-rank.bronze { background: #CD7F32; color: #fff; }
+
+        .top-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .top-count {
+            font-weight: 600;
+            color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .emoji-card {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            padding: 16px 8px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .emoji-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .emoji-count {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" onclick="goHome()">‹</button>
+        <h1>📊 Статистика</h1>
+    </div>
+
+    <div class="period-selector">
+        <button class="period-btn active" onclick="changePeriod('today')">Сегодня</button>
+        <button class="period-btn" onclick="changePeriod('week')">Неделя</button>
+        <button class="period-btn" onclick="changePeriod('month')">Месяц</button>
+    </div>
+
+    <div id="loading" class="loading">Загрузка...</div>
+
+    <div id="content" style="display: none;">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="total-messages">0</div>
+                <div class="stat-label">Сообщений</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-users">0</div>
+                <div class="stat-label">Участников</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-reactions">0</div>
+                <div class="stat-label">Реакций</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-messages">0</div>
+                <div class="stat-label">В среднем</div>
+            </div>
+        </div>
+
+        <div class="section-title">🏆 Топ активных</div>
+        <div class="top-list" id="top-users"></div>
+
+        <div class="section-title">❤️ Топ по реакциям</div>
+        <div class="top-list" id="top-reactions"></div>
+
+        <div class="section-title">😊 Популярные эмодзи</div>
+        <div class="emoji-grid" id="emoji-stats"></div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let currentPeriod = 'today';
+
+        async function loadStats(period) {
+            try {
+                // Получаем chat_id из init data Telegram
+                const initData = tg.initDataUnsafe;
+                const chatId = initData?.start_param || 'demo';
+
+                const response = await fetch(`/api/stats?period=${period}&chat_id=${chatId}`);
+                const data = await response.json();
+
+                // Обновляем карточки
+                document.getElementById('total-messages').textContent = data.total_messages || 0;
+                document.getElementById('total-users').textContent = data.total_users || 0;
+                document.getElementById('total-reactions').textContent = data.total_reactions || 0;
+                
+                const avgMessages = data.total_users > 0 
+                    ? Math.round(data.total_messages / data.total_users) 
+                    : 0;
+                document.getElementById('avg-messages').textContent = avgMessages;
+
+                // Топ активных
+                const topUsersHtml = (data.top_users || []).map((user, idx) => {
+                    let rankClass = '';
+                    if (idx === 0) rankClass = 'gold';
+                    else if (idx === 1) rankClass = 'silver';
+                    else if (idx === 2) rankClass = 'bronze';
+
+                    return `
+                        <div class="top-item">
+                            <div class="top-rank ${rankClass}">${idx + 1}</div>
+                            <div class="top-name">${user.name}</div>
+                            <div class="top-count">${user.count}</div>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('top-users').innerHTML = topUsersHtml || '<div class="top-item">Нет данных</div>';
+
+                // Топ по реакциям
+                const topReactionsHtml = (data.top_reactions || []).map((user, idx) => {
+                    let rankClass = '';
+                    if (idx === 0) rankClass = 'gold';
+                    else if (idx === 1) rankClass = 'silver';
+                    else if (idx === 2) rankClass = 'bronze';
+
+                    return `
+                        <div class="top-item">
+                            <div class="top-rank ${rankClass}">${idx + 1}</div>
+                            <div class="top-name">${user.name}</div>
+                            <div class="top-count">${user.count}</div>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('top-reactions').innerHTML = topReactionsHtml || '<div class="top-item">Нет данных</div>';
+
+                // Эмодзи статистика
+                const emojiHtml = (data.emoji_stats || []).map(emoji => `
+                    <div class="emoji-card">
+                        <div class="emoji-icon">${emoji.emoji}</div>
+                        <div class="emoji-count">${emoji.count}</div>
+                    </div>
+                `).join('');
+                document.getElementById('emoji-stats').innerHTML = emojiHtml || '<div>Нет данных</div>';
+
+                // Показываем контент
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('loading').textContent = 'Ошибка загрузки данных';
+            }
+        }
+
+        function changePeriod(period) {
+            currentPeriod = period;
+            
+            // Обновляем кнопки
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Загружаем данные
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            loadStats(period);
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Загружаем при старте
+        loadStats(currentPeriod);
+    </script>
+</body>
+</html>
