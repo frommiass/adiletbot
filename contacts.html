@@ -66,49 +66,28 @@
         .contact-phone {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             background: var(--tg-theme-bg-color, #ffffff);
             border-radius: 8px;
             padding: 14px 16px;
             margin-top: 8px;
         }
 
-        .phone-number {
-            font-size: 18px;
+        .phone-link {
+            font-size: 16px;
             font-weight: 500;
-            color: var(--tg-theme-button-color, #3390ec);
-            letter-spacing: 0.5px;
+            color: var(--tg-theme-link-color, #3390ec);
+            text-decoration: none;
+            letter-spacing: 0.3px;
         }
 
-        .call-button {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .call-button:active {
-            transform: scale(0.95);
-            opacity: 0.8;
+        .phone-link:active {
+            opacity: 0.7;
         }
 
         .icon {
             font-size: 32px;
             margin-bottom: 8px;
-        }
-
-        .footer-note {
-            text-align: center;
-            margin-top: 40px;
-            padding: 16px;
-            color: var(--tg-theme-hint-color, #999999);
-            font-size: 14px;
-            line-height: 1.5;
         }
     </style>
 </head>
@@ -123,10 +102,7 @@
             <div class="icon">🏢</div>
             <div class="contact-name">Управляющая Компания А101</div>
             <div class="contact-phone">
-                <span class="phone-number">+7-495-648-67-77</span>
-                <button class="call-button" onclick="callPhone('+74956486777')">
-                    Позвонить
-                </button>
+                <a href="tel:+74956486777" class="phone-link">📞 +7-495-648-67-77</a>
             </div>
         </div>
 
@@ -134,27 +110,15 @@
             <div class="icon">🛒</div>
             <div class="contact-name">Бесплатная тележка</div>
             <div class="contact-phone">
-                <span class="phone-number">+7-909-166-56-03</span>
-                <button class="call-button" onclick="callPhone('+79091665603')">
-                    Позвонить
-                </button>
+                <a href="tel:+79091665603" class="phone-link">📞 +7-909-166-56-03</a>
             </div>
         </div>
-    </div>
-
-    <div class="footer-note">
-        💡 Нажмите "Позвонить" для быстрого набора номера<br>
-        или скопируйте номер телефона вручную
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-
-        function callPhone(phone) {
-            window.location.href = 'tel:' + phone;
-        }
 
         function goHome() {
             window.location.href = 'index.html';

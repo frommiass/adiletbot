@@ -351,8 +351,7 @@
         }
 
         function updateEntranceView() {
-            const floors = ENTRANCE_FLOORS[currentEntrance];
-            document.getElementById('entrance-title').textContent = `Подъезд ${currentEntrance} (${floors} эт)`;
+            document.getElementById('entrance-title').textContent = `Подъезд ${currentEntrance}`;
             generateFlats(currentEntrance);
             showScreen('flat-screen');
         }
@@ -372,7 +371,15 @@
             // Базовый номер квартиры
             let baseFlat = 0;
             for (let i = 1; i < entranceNum; i++) {
-                baseFlat += ENTRANCE_FLOORS[i] * FLATS_PER_FLOOR[i];
+                const floors_i = ENTRANCE_FLOORS[i];
+                const flats_i = FLATS_PER_FLOOR[i];
+                
+                // Для 1-го подъезда: 6кв на 2эт + 4кв на 3эт + остальные этажи*6кв
+                if (i === 1) {
+                    baseFlat += 6 + 4 + (floors_i - 2) * flats_i;
+                } else {
+                    baseFlat += floors_i * flats_i;
+                }
             }
 
             let flatCounter = baseFlat;
@@ -458,7 +465,7 @@
                     cardHTML += '<div class="contact-info">';
 
                     if (contact.telegram) {
-                        cardHTML += `<a href="https://t.me/${contact.telegram}" class="contact-link">📱 @${contact.telegram}</a>`;
+                        cardHTML += `<a href="https://t.me/${contact.telegram}" class="contact-link">✈️ @${contact.telegram}</a>`;
                     }
 
                     if (contact.phone) {
