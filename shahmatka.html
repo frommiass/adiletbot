@@ -305,6 +305,26 @@
             11: 6, 12: 5, 13: 6, 14: 5, 15: 6, 16: 6
         };
 
+        // Точное количество квартир в каждом подъезде (с учетом двухэтажных!)
+        const TOTAL_FLATS_IN_ENTRANCE = {
+            1: 64,   // 6+4+54 (двухэтажные 1,2)
+            2: 66,   // 11*6
+            3: 75,   // 15*5
+            4: 90,   // 15*6
+            5: 75,   // 15*5
+            6: 66,   // 11*6
+            7: 64,   // 6+4+54 (двухэтажные 440,441)
+            8: 90,   // 15*6
+            9: 75,   // 15*5
+            10: 55,  // 11*5
+            11: 66,  // 11*6
+            12: 73,  // с учетом двухэтажных 861,862
+            13: 90,  // 15*6
+            14: 75,  // 15*5
+            15: 90,  // 15*6
+            16: 90   // 15*6
+        };
+
         const MERGED_FLATS = {
             1: { type: 'vertical' },
             2: { type: 'vertical' },
@@ -366,18 +386,10 @@
             grid.style.gridTemplateRows = `repeat(${numRows}, auto)`;
             grid.className = `flats-grid flats-grid-${flatsPerFloor}`;
 
-            // Базовый номер квартиры
+            // Базовый номер квартиры (сумма всех квартир в предыдущих подъездах)
             let baseFlat = 0;
             for (let i = 1; i < entranceNum; i++) {
-                const floors_i = ENTRANCE_FLOORS[i];
-                const flats_i = FLATS_PER_FLOOR[i];
-                
-                // Для 1-го подъезда: 6кв на 2эт + 4кв на 3эт + (этажи 4-12)*6кв
-                if (i === 1) {
-                    baseFlat += 6 + 4 + (floors_i - 3) * flats_i; // 6+4+(12-3)*6 = 6+4+54 = 64
-                } else {
-                    baseFlat += (floors_i - 1) * flats_i; // -1 потому что пропускаем 1 этаж
-                }
+                baseFlat += TOTAL_FLATS_IN_ENTRANCE[i];
             }
 
             let flatCounter = baseFlat;
@@ -403,8 +415,9 @@
 
                 // Квартиры на этаже
                 let columnOffset = 2;
+                let drawnFlats = 0; // Счетчик отрисованных квартир
                 
-                for (let i = 0; i < flatsOnThisFloor; i++) {
+                while (drawnFlats < flatsOnThisFloor) {
                     // Пропускаем занятые столбцы
                     while (mergedColumns[floor].has(columnOffset)) {
                         columnOffset++;
@@ -428,10 +441,9 @@
                             if (!mergedColumns[floor + 1]) mergedColumns[floor + 1] = new Set();
                             mergedColumns[floor + 1].add(columnOffset);
                         } else if (merge.type === 'horizontal') {
+                            // Горизонтальное объединение: рисуем на 2 столбца, но это ОДНА квартира
                             cell.classList.add('merged-horizontal');
                             cell.style.gridColumn = `${columnOffset} / span 2`;
-                            // НЕ пропускаем номер! 65 объединена с 66, но следующая - 66
-                            i++; // пропускаем позицию в цикле
                             columnOffset++; // занимаем дополнительный столбец
                         }
                     }
@@ -440,6 +452,7 @@
                     grid.appendChild(cell);
                     
                     columnOffset++;
+                    drawnFlats++;
                 }
             }
         }
