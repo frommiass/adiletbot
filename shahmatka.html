@@ -242,7 +242,7 @@
     <div id="entrance-screen" class="screen active">
         <div class="header">
             <button class="back-button" onclick="goHome()">‹</button>
-            <h1>🏢 Шахматка ПП5</h1>
+            <h1>Чат соседей ПП 5</h1>
         </div>
 
         <div class="section-title">Выберите подъезд</div>
@@ -266,8 +266,6 @@
                 <button class="nav-btn" onclick="nextEntrance()">›</button>
             </div>
         </div>
-
-        <div class="section-title">Свайпайте ← → между подъездами</div>
 
         <div class="flats-container">
             <div class="flats-grid" id="flat-grid"></div>
@@ -432,9 +430,9 @@
                         } else if (merge.type === 'horizontal') {
                             cell.classList.add('merged-horizontal');
                             cell.style.gridColumn = `${columnOffset} / span 2`;
-                            flatCounter++;
-                            i++; // пропускаем следующую квартиру
-                            columnOffset++;
+                            // НЕ пропускаем номер! 65 объединена с 66, но следующая - 66
+                            i++; // пропускаем позицию в цикле
+                            columnOffset++; // занимаем дополнительный столбец
                         }
                     }
 
