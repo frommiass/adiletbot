@@ -296,7 +296,7 @@
         const ENTRANCE_FLOORS = {
             1: 12, 2: 12, 3: 16, 4: 16, 5: 16,
             6: 12, 7: 12, 8: 16, 9: 16, 10: 12,
-            11: 12, 12: 16, 13: 16, 14: 16, 15: 16, 16: 16
+            11: 12, 12: 16, 13: 16, 14: 16, 15: 12, 16: 16
         };
 
         const FLATS_PER_FLOOR = {
@@ -332,7 +332,9 @@
             440: { type: 'vertical' },
             441: { type: 'vertical' },
             861: { type: 'vertical' },
-            862: { type: 'vertical' }
+            862: { type: 'vertical' },
+            1074: { type: 'horizontal' },
+            1079: { type: 'horizontal' }
         };
 
         // База контактов собственников
@@ -409,13 +411,27 @@
                 label.style.gridRow = rowIndex;
                 grid.appendChild(label);
 
-                // Определяем сколько квартир на этом этаже (с учетом занятых позиций)
+                // Определяем сколько квартир на этом этаже
                 const occupiedPositions = mergedColumns[floor].size;
-                const flatsOnThisFloor = flatsPerFloor - occupiedPositions;
+                let flatsOnThisFloor = flatsPerFloor - occupiedPositions;
+                
+                // Проверяем есть ли horizontal merged квартира на этом этаже
+                // Она займет 2 позиции, поэтому уменьшаем количество квартир на 1
+                let hasHorizontalMerge = false;
+                const expectedFlatStart = flatCounter + 1;
+                for (let checkNum = expectedFlatStart; checkNum < expectedFlatStart + flatsOnThisFloor; checkNum++) {
+                    if (MERGED_FLATS[checkNum]?.type === 'horizontal') {
+                        hasHorizontalMerge = true;
+                        break;
+                    }
+                }
+                if (hasHorizontalMerge) {
+                    flatsOnThisFloor--; // Широкая квартира занимает место двух
+                }
 
                 // Квартиры на этаже
                 let columnOffset = 2;
-                let drawnFlats = 0; // Счетчик отрисованных квартир
+                let drawnFlats = 0;
                 
                 while (drawnFlats < flatsOnThisFloor) {
                     // Пропускаем занятые столбцы
