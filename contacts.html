@@ -51,30 +51,41 @@
         .contact-card {
             background: var(--tg-theme-secondary-bg-color, #f5f5f5);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .contact-name {
-            font-size: 18px;
-            font-weight: 600;
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 12px;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+
+        .contact-name {
+            font-size: 17px;
+            font-weight: 600;
             color: var(--tg-theme-text-color, #000000);
+            flex: 1;
         }
 
         .contact-phone {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: flex-end;
             background: var(--tg-theme-bg-color, #ffffff);
             border-radius: 8px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             margin-top: 8px;
         }
 
         .phone-link {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
             color: var(--tg-theme-link-color, #3390ec);
             text-decoration: none;
@@ -85,9 +96,26 @@
             opacity: 0.7;
         }
 
-        .icon {
-            font-size: 32px;
-            margin-bottom: 8px;
+        .phone-note {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #999999);
+            margin-left: 8px;
+        }
+
+        .officer-info {
+            margin: 8px 0 4px 0;
+        }
+
+        .officer-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 4px;
+        }
+
+        .officer-rank {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #999999);
         }
     </style>
 </head>
@@ -99,18 +127,40 @@
 
     <div class="contacts-list">
         <div class="contact-card">
-            <div class="icon">🏢</div>
-            <div class="contact-name">Управляющая Компания А101</div>
+            <div class="contact-header">
+                <span class="icon">🏢</span>
+                <span class="contact-name">Управляющая Компания А101</span>
+            </div>
             <div class="contact-phone">
                 <a href="tel:+74956486777" class="phone-link">📞 +7-495-648-67-77</a>
             </div>
         </div>
 
         <div class="contact-card">
-            <div class="icon">🛒</div>
-            <div class="contact-name">Бесплатная тележка</div>
+            <div class="contact-header">
+                <span class="icon">🛒</span>
+                <span class="contact-name">Бесплатная тележка</span>
+            </div>
             <div class="contact-phone">
                 <a href="tel:+79091665603" class="phone-link">📞 +7-909-166-56-03</a>
+            </div>
+        </div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <span class="icon">👤</span>
+                <span class="contact-name">Участковый</span>
+            </div>
+            <div class="officer-info">
+                <div class="officer-name">Самсонов Константин Александрович</div>
+                <div class="officer-rank">капитан полиции</div>
+            </div>
+            <div class="contact-phone">
+                <a href="tel:+79990107753" class="phone-link">📲 8-999-010-77-53</a>
+            </div>
+            <div class="contact-phone">
+                <a href="tel:+74958177202" class="phone-link">📞 +7 (495) 817-72-02</a>
+                <span class="phone-note">— дежурная часть</span>
             </div>
         </div>
     </div>
